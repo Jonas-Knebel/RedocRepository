@@ -1,0 +1,34 @@
+name: start
+on: [push]
+jobs:
+    generate_Github_pages_of_the_yaml_files:
+        runs-on: ubuntu-20.04
+        container: 
+            image: jonasknebel/resolver_for_yaml_dependencies:latest     
+        steps:
+        - uses: actions/checkout@master
+          with:
+            persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+            fetch-depth: 0 # otherwise, you will failed to push refs to dest repo   
+        - name: Generate HTML files
+          run: for filename in ./*.yaml; do redoc-cli bundle -o ./docs/${filename:2:$((${#filename})) - 7}.html $filename; done 
+        - name: git status
+          run: git status
+        - name: Add files
+          run: git add docs/*
+        - name: Commit files
+          run: |
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git commit -m "Add changes" --allow-empty
+        - name: Push changes
+          uses: ad-m/github-push-action@master
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            branch: gh-pages
+            force: true            
+ 
+        
+            
+
+         
